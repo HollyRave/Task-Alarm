@@ -7,65 +7,40 @@ public class SignalingController : MonoBehaviour
     [SerializeField] private float _rateOfChangeAlarm;
 
     private AudioSource _audioSource;
-
-    private bool _isPlaying = false;
-
-    private float _currentVolume = 0;
+    
     private float _maxVolume = 1;
     private float _minVolume = 0;
-    private float _targetVolume;
-
 
     private void Awake()
     {
-        _audioSource = GetComponent<AudioSource>();      
+        _audioSource = GetComponent<AudioSource>();
+        _audioSource.Play();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
+        if (collision.GetComponent<Hero>())
         {
-            StartAlarm();
+            StartCoroutine(ChangeAlarmVolume(_maxVolume));
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
+        if (collision.GetComponent<Hero>())
         {
-            StopAlarm();
+            StartCoroutine(ChangeAlarmVolume(_minVolume));
         }
     }
 
-    private void Update()
+    private IEnumerator ChangeAlarmVolume(float targetVolume)
     {
-        if (_isPlaying)
+        while(_audioSource.volume != targetVolume)
         {
-            _currentVolume = _audioSource.volume;
-
-            if(_audioSource.volume == _minVolume)
-            {
-                _targetVolume = _maxVolume;
-            }
-            else if (_audioSource.volume == _maxVolume)
-            {
-                _targetVolume = _minVolume;
-            }
-
-            _audioSource.volume = Mathf.MoveTowards(_currentVolume, _targetVolume, _rateOfChangeAlarm);
+            _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, targetVolume, _rateOfChangeAlarm);
+        
+            yield return null;
         }
-    }
 
-    private void StartAlarm()
-    {
-        _audioSource.volume = _minVolume;
-        _audioSource.Play();
-        _isPlaying = true;
-    }
-
-    private void StopAlarm()
-    {
-        _audioSource.Stop();
-        _isPlaying = false;
     }
 }
