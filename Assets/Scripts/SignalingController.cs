@@ -7,9 +7,11 @@ public class SignalingController : MonoBehaviour
     [SerializeField] private float _rateOfChangeAlarm;
 
     private AudioSource _audioSource;
-    
-    private float _maxVolume = 1;
-    private float _minVolume = 0;
+
+    private int _maxVolume = 1;
+    private int _minVolume = 0;
+
+    private bool _canThisBeRun = true;
 
     private void Awake()
     {
@@ -19,28 +21,37 @@ public class SignalingController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.GetComponent<Hero>())
+        if (collision.TryGetComponent<Hero>(out Hero hero))
         {
-            StartCoroutine(ChangeAlarmVolume(_maxVolume));
+            if (_canThisBeRun == true)
+            {
+                StartCoroutine(ChangeAlarmVolume(_maxVolume));
+            }
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.GetComponent<Hero>())
+        if (collision.TryGetComponent<Hero>(out Hero hero))
         {
-            StartCoroutine(ChangeAlarmVolume(_minVolume));
+            if (_canThisBeRun == true)
+            {
+                StartCoroutine(ChangeAlarmVolume(_minVolume));
+            }
         }
     }
 
     private IEnumerator ChangeAlarmVolume(float targetVolume)
     {
-        while(_audioSource.volume != targetVolume)
+        _canThisBeRun = false;
+
+        while (_audioSource.volume != targetVolume)
         {
             _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, targetVolume, _rateOfChangeAlarm);
-        
+
             yield return null;
         }
 
+        _canThisBeRun = true;
     }
 }
